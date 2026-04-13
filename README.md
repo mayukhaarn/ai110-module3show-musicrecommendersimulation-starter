@@ -1,5 +1,6 @@
 # 🎵 Music Recommender Simulation
 
+
 ## Project Summary
 
 In this project you will build and explain a small music recommender system.
@@ -54,17 +55,6 @@ This mirrors how platforms like Spotify structure Discover Weekly — accuracy o
 Potential Biases
 This system might over-prioritize genre — since a genre match adds +2.0 points, a mediocre genre-matched song can outscore a song that perfectly fits the user's mood and energy but comes from a different genre. This creates a "filter bubble" where recommendations stay within one genre even when better vibes exist elsewhere. The diversity filter helps reduce this, but the genre weighting remains the biggest source of bias in the current design.
 
-Some prompts to answer:
-
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
-
-You can include a simple diagram or bullet list if helpful.
-
-
 ---
 
 ## Getting Started
@@ -100,6 +90,7 @@ pytest
 
 You can add more tests in `tests/test_recommender.py`.
 
+
 ---
 
 ## Experiments You Tried
@@ -125,6 +116,8 @@ Examples:
 You will go deeper on this in your model card.
 
 ---
+
+CLI VERIFICATION: screenshot attached in repo (was not attaching to README.md)
 
 ## Reflection
 
