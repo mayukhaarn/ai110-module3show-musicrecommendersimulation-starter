@@ -19,6 +19,41 @@ Replace this paragraph with your own summary of what your version does.
 
 Explain your design in plain language.
 
+How The System Works
+Real-world recommenders like Spotify and YouTube balance two goals — keeping users engaged with familiar content and introducing new discoveries. My version takes a content-based, vibe-first approach: instead of tracking what other users listen to, it scores every song by how closely it matches the listener's own taste profile.
+
+Song Features
+Each Song is evaluated on five attributes:
+
+Energy — perceived intensity (calm vs. driving)
+Valence — emotional positivity (sad vs. uplifting)
+Danceability — rhythmic groove and movement suitability
+Tempo (BPM) — pace of the track, normalized to a 0–1 scale
+Mood — categorical label (e.g. chill, happy, intense, focused)
+User Profile
+The UserProfile stores the listener's preferred values for each feature:
+
+Target energy, valence, danceability, and tempo (0–1 floats)
+Preferred mood (e.g. "chill")
+Preferred genre (e.g. "lofi") — used as a weighted anchor
+Algorithm Recipe
+The Recommender computes a composite score for each song using three rules:
+
++2.0 — genre exactly matches the user's preferred genre
++1.0 — mood exactly matches the user's preferred mood
++0.0 to 1.0 — energy proximity score using 1 - |song_energy - target_energy|
+Energy and valence carry the most weight because they best capture emotional fit. All numerical features are normalized to a 0–1 scale so tempo (measured in BPM) doesn't outweigh smaller-range values.
+
+Choosing Recommendations
+Selection happens in two stages:
+
+Score — every song in the catalog is scored against the user profile
+Rank — the top results are filtered with a diversity penalty, limiting no more than two songs from the same genre in the final list
+This mirrors how platforms like Spotify structure Discover Weekly — accuracy on individual song fit, variety across the full list.
+
+Potential Biases
+This system might over-prioritize genre — since a genre match adds +2.0 points, a mediocre genre-matched song can outscore a song that perfectly fits the user's mood and energy but comes from a different genre. This creates a "filter bubble" where recommendations stay within one genre even when better vibes exist elsewhere. The diversity filter helps reduce this, but the genre weighting remains the biggest source of bias in the current design.
+
 Some prompts to answer:
 
 - What features does each `Song` use in your system
@@ -28,6 +63,7 @@ Some prompts to answer:
 - How do you choose which songs to recommend
 
 You can include a simple diagram or bullet list if helpful.
+
 
 ---
 
