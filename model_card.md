@@ -212,11 +212,10 @@ The core tension is **specialization vs. serendipity**. A high genre weight ensu
 ---
 
 ## 9. Personal Reflection  
+Building VibeFinder taught me that recommendation systems are fundamentally about trade-offs, not magic. A single weight—like the +2.0 I assigned to genre—has enormous downstream impact on what users see. When I tested the system with edge-case profiles (sad moods that don't exist, genres with one song), I realized how brittle the design was. The genre weighting, which seemed reasonable in isolation, actually created the exact "filter bubble" I feared.
 
-A few sentences about your experience.  
+Working with GitHub Copilot accelerated the boilerplate (CSV loading, iteration loops) but also revealed something important: the model's suggestions for weighting came from best practices, not from understanding my actual data. I had to manually adjust weights and run sensitivity tests to discover what actually worked. This mirrors real-world AI work—you can't just accept default parameters; you have to validate against your specific context.
 
-Prompts:  
+The most surprising moment was realizing that proximity-based scoring (rewarding closeness rather than high values) changed the entire character of recommendations. A user seeking energy 0.2 now gets calm songs, not just "songs that aren't loud." That simple mathematical shift—from "more is better" to "closeness is better"—made the recommendations feel intentional, like the system actually understood vibe, not just preferences.
 
-- What you learned about recommender systems  
-- Something unexpected or interesting you discovered  
-- How this changed the way you think about music recommendation apps  
+Moving forward, I'd connect this to a real music API and build a visual interface where users could see their profile, adjust weights, and observe recommendations update in real time. I'd also A/B test the filter-bubble hypothesis with actual users—do they want genre anchoring, or would they prefer pure vibe matching? The answer will likely depend on context: workout playlists need consistency, late-night discovery playlists need serendipity. A production system would need both, and the ability to toggle between them. 
