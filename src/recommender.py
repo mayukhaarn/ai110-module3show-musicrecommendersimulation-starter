@@ -47,21 +47,7 @@ class Recommender:
         return "Explanation placeholder"
 
 def load_songs(csv_path: str) -> List[Dict]:
-    """
-    Loads songs from a CSV file and returns a list of dictionaries.
-    
-    Args:
-        csv_path (str): Path to the CSV file (e.g., 'data/songs.csv').
-    
-    Returns:
-        List[Dict]: A list of dictionaries, each representing a song with keys:
-                    id, title, artist, genre, mood, energy, tempo_bpm,
-                    valence, danceability, acousticness.
-    
-    Raises:
-        FileNotFoundError: If the CSV file does not exist.
-        ValueError: If a row is missing required columns or type conversion fails.
-    """
+    """Load and type-cast song data from a CSV file."""
     songs = []
     
     try:
@@ -102,25 +88,7 @@ def load_songs(csv_path: str) -> List[Dict]:
         raise Exception(f"Unexpected error loading CSV from {csv_path}: {e}")
 
 def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
-    """
-    Calculate a match score for a song based on user preferences.
-    
-    Algorithm Recipe:
-    - Genre Match: +2.0 points if song['genre'] == user_prefs['favorite_genre']
-    - Mood Match: +1.0 point if song['mood'] == user_prefs['favorite_mood']
-    - Energy Similarity: 1 - |song['energy'] - user_prefs['target_energy']| (0.0 to 1.0)
-    
-    Args:
-        user_prefs (Dict): User preference profile with keys:
-                          'favorite_genre', 'favorite_mood', 'target_energy'
-        song (Dict): Song dictionary with keys:
-                    'genre', 'mood', 'energy', etc.
-    
-    Returns:
-        Tuple[float, List[str]]: A tuple containing:
-                                 - score (float): Total composite score (max ~4.0)
-                                 - reasons (List[str]): List of justifications for points awarded
-    """
+    """Calculate a match score for a song based on user preferences."""
     score = 0.0
     reasons = []
     
@@ -185,4 +153,18 @@ def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tup
     scored_songs.sort(key=lambda x: x[1], reverse=True)
     
     # Return top K
+    return scored_songs[:k]
+
+def get_recommendations(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, List[str]]]:
+    """Get top k song recommendations with scores and explanations."""
+    # Create list of (song, score, reasons) tuples
+    scored_songs = []
+    for song in songs:
+        score, reasons = score_song(user_prefs, song)
+        scored_songs.append((song, score, reasons))
+    
+    # Sort by score in descending order (highest first)
+    scored_songs.sort(key=lambda x: x[1], reverse=True)
+    
+    # Return top k
     return scored_songs[:k]
