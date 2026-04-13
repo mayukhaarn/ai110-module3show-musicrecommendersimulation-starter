@@ -89,14 +89,15 @@ def load_songs(csv_path: str) -> List[Dict]:
 
 def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     """Calculate a match score for a song based on user preferences."""
+    # EXPERIMENTAL SENSITIVITY WEIGHTS: Testing genre/energy trade-off
     score = 0.0
     reasons = []
     
-    # Genre Match: +2.0 points
+    # Genre Match: +1.0 points (reduced from +2.0 for testing)
     try:
         if song.get('genre', '').lower() == user_prefs.get('favorite_genre', '').lower():
-            score += 2.0
-            reasons.append("Genre match (+2.0)")
+            score += 1.0
+            reasons.append("Genre match (+1.0)")
     except (KeyError, AttributeError, TypeError):
         pass  # Gracefully handle missing or invalid genre data
     
@@ -108,7 +109,7 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     except (KeyError, AttributeError, TypeError):
         pass  # Gracefully handle missing or invalid mood data
     
-    # Energy Similarity: 0.0 to 1.0 based on proximity
+    # Energy Similarity: 0.0 to 2.0 based on proximity (2.0x multiplier for testing)
     try:
         song_energy = float(song.get('energy', 0.0))
         target_energy = float(user_prefs.get('target_energy', 0.5))
@@ -119,8 +120,11 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
         # Clamp to [0.0, 1.0] to handle edge cases
         energy_similarity = max(0.0, min(1.0, energy_similarity))
         
-        score += energy_similarity
-        reasons.append(f"Energy similarity (+{energy_similarity:.2f})")
+        # Apply 2.0x multiplier to increase energy weight (experimental)
+        weighted_energy = energy_similarity * 2.0
+        
+        score += weighted_energy
+        reasons.append(f"Energy similarity (+{weighted_energy:.2f})")
     
     except (KeyError, ValueError, TypeError):
         pass  # Gracefully handle missing or invalid energy data

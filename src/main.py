@@ -16,7 +16,7 @@ def main() -> None:
     # Data Loading
     all_songs = load_songs("data/songs.csv")
 
-    # Test Profiles
+    # Sensitivity Test Profiles
     profiles = [
         {
             "name": "Conflicting Data: High-Energy Sad Music",
@@ -44,11 +44,17 @@ def main() -> None:
         }
     ]
 
+    print("="*70)
+    print("WEIGHT SHIFT SENSITIVITY TEST")
+    print("Experimental Weights: Genre +1.0, Mood +1.0, Energy x2.0")
+    print("Max possible score: 4.0 (1.0 + 1.0 + 2.0)")
+    print("="*70)
+
     for profile in profiles:
-        print(f"\n{'='*60}")
+        print(f"\n{'='*70}")
         print(f"TESTING: {profile['name']}")
         print(f"Profile: {profile['prefs']}")
-        print(f"{'='*60}")
+        print(f"{'='*70}")
 
         # Processing
         recommendations = get_recommendations(profile['prefs'], all_songs, k=3)
@@ -64,7 +70,9 @@ def main() -> None:
             print()
 
     # Final Touch
-    print("All adversarial profile tests complete!")
+    print("="*70)
+    print("Sensitivity test complete! Analyze how energy weighting affects results.")
+    print("="*70)
 
 
 if __name__ == "__main__":
