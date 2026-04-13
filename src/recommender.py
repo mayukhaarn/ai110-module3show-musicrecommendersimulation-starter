@@ -62,69 +62,7 @@ def load_songs(csv_path: str) -> List[Dict]:
         FileNotFoundError: If the CSV file does not exist.
         ValueError: If a row is missing required columns or type conversion fails.
     """
-    songs = []    # ...existing code...
-    
-    def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
-        """
-        Calculate a match score for a song based on user preferences.
-        
-        Args:
-            user_prefs (Dict): User preference profile with keys:
-                              'favorite_genre', 'favorite_mood', 'target_energy'
-            song (Dict): Song dictionary with keys:
-                        'genre', 'mood', 'energy', etc.
-        
-        Returns:
-            Tuple[float, List[str]]: A tuple containing:
-                                     - score (float): Total composite score
-                                     - reasons (List[str]): List of justifications for points awarded
-        """
-        score = 0.0
-        reasons = []
-        
-        # Genre Match: +2.0 points
-        try:
-            if song.get('genre', '').lower() == user_prefs.get('favorite_genre', '').lower():
-                score += 2.0
-                reasons.append("Genre match (+2.0)")
-        except (KeyError, AttributeError, TypeError):
-            pass  # Gracefully handle missing or invalid genre data
-        
-        # Mood Match: +1.0 point
-        try:
-            if song.get('mood', '').lower() == user_prefs.get('favorite_mood', '').lower():
-                score += 1.0
-                reasons.append("Mood match (+1.0)")
-        except (KeyError, AttributeError, TypeError):
-            pass  # Gracefully handle missing or invalid mood data
-        
-        # Energy Similarity: 0.0 to 1.0 based on proximity
-        try:
-            song_energy = float(song.get('energy', 0.0))
-            target_energy = float(user_prefs.get('target_energy', 0.5))
-            
-            # Calculate proximity: 1 - |song_energy - target_energy|
-            energy_similarity = 1.0 - abs(song_energy - target_energy)
-            
-            # Clamp to [0.0, 1.0] to handle edge cases
-            energy_similarity = max(0.0, min(1.0, energy_similarity))
-            
-            score += energy_similarity
-            reasons.append(f"Energy similarity (+{energy_similarity:.2f})")
-        
-        except (KeyError, ValueError, TypeError):
-            pass  # Gracefully handle missing or invalid energy data
-        
-        return score, reasons
-    
-    def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
-        """
-        Functional implementation of the recommendation logic.
-        Required by src/main.py
-        """
-        # TODO: Implement scoring and ranking logic
-        # Expected return format: (song_dict, score, explanation)
-        return []
+    songs = []
     
     try:
         with open(csv_path, 'r', encoding='utf-8') as csvfile:
@@ -163,11 +101,88 @@ def load_songs(csv_path: str) -> List[Dict]:
     except Exception as e:
         raise Exception(f"Unexpected error loading CSV from {csv_path}: {e}")
 
-def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
+def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     """
-    Functional implementation of the recommendation logic.
-    Required by src/main.py
+    Calculate a match score for a song based on user preferences.
+    
+    Algorithm Recipe:
+    - Genre Match: +2.0 points if song['genre'] == user_prefs['favorite_genre']
+    - Mood Match: +1.0 point if song['mood'] == user_prefs['favorite_mood']
+    - Energy Similarity: 1 - |song['energy'] - user_prefs['target_energy']| (0.0 to 1.0)
+    
+    Args:
+        user_prefs (Dict): User preference profile with keys:
+                          'favorite_genre', 'favorite_mood', 'target_energy'
+        song (Dict): Song dictionary with keys:
+                    'genre', 'mood', 'energy', etc.
+    
+    Returns:
+        Tuple[float, List[str]]: A tuple containing:
+                                 - score (float): Total composite score (max ~4.0)
+                                 - reasons (List[str]): List of justifications for points awarded
     """
-    # TODO: Implement scoring and ranking logic
-    # Expected return format: (song_dict, score, explanation)
-    return []
+    score = 0.0
+    reasons = []
+    
+    # Genre Match: +2.0 points
+    try:
+        if song.get('genre', '').lower() == user_prefs.get('favorite_genre', '').lower():
+            score += 2.0
+            reasons.append("Genre match (+2.0)")
+    except (KeyError, AttributeError, TypeError):
+        pass  # Gracefully handle missing or invalid genre data
+    
+    # Mood Match: +1.0 point
+    try:
+        if song.get('mood', '').lower() == user_prefs.get('favorite_mood', '').lower():
+            score += 1.0
+            reasons.append("Mood match (+1.0)")
+    except (KeyError, AttributeError, TypeError):
+        pass  # Gracefully handle missing or invalid mood data
+    
+    # Energy Similarity: 0.0 to 1.0 based on proximity
+    try:
+        song_energy = float(song.get('energy', 0.0))
+        target_energy = float(user_prefs.get('target_energy', 0.5))
+        
+        # Calculate proximity: 1 - |song_energy - target_energy|
+        energy_similarity = 1.0 - abs(song_energy - target_energy)
+        
+        # Clamp to [0.0, 1.0] to handle edge cases
+        energy_similarity = max(0.0, min(1.0, energy_similarity))
+        
+        score += energy_similarity
+        reasons.append(f"Energy similarity (+{energy_similarity:.2f})")
+    
+    except (KeyError, ValueError, TypeError):
+        pass  # Gracefully handle missing or invalid energy data
+    
+    return score, reasons
+
+def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, List[str]]]:
+    """
+    Score all songs and return the top K recommendations with explanations.
+    
+    Args:
+        user_prefs (Dict): User preference profile
+        songs (List[Dict]): List of song dictionaries
+        k (int): Number of top recommendations to return (default 5)
+    
+    Returns:
+        List[Tuple[Dict, float, List[str]]]: List of tuples containing:
+                                             - song (Dict): The song dictionary
+                                             - score (float): The composite score
+                                             - reasons (List[str]): Justifications for the score
+    """
+    scored_songs = []
+    
+    # Score each song
+    for song in songs:
+        score, reasons = score_song(user_prefs, song)
+        scored_songs.append((song, score, reasons))
+    
+    # Sort by score descending
+    scored_songs.sort(key=lambda x: x[1], reverse=True)
+    
+    # Return top K
+    return scored_songs[:k]
