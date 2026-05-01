@@ -1,0 +1,22 @@
+flowchart LR
+    UserInput([User Input]) --> PlannerAgent[Planner Agent]
+    PlannerAgent --> RetrievalTool[Similarity / Retrieval Tool]
+    RetrievalTool --> CriticAgent[Critic / Evaluator Agent]
+    CriticAgent --> HumanLoop[Human-in-the-loop Review]
+    HumanLoop --> FinalOutput([Final Recommendation Output])
+
+    subgraph Plan
+        PlannerAgent
+    end
+    subgraph Act
+        RetrievalTool
+    end
+    subgraph Reflect
+        CriticAgent
+        HumanLoop
+    end
+
+    PlannerAgent -->|Infer energy, valence, tempo, mood| RetrievalTool
+    RetrievalTool -->|Score and rank candidates| CriticAgent
+    CriticAgent -->|Reject or approve with confidence| HumanLoop
+    HumanLoop -->|Final approval and user-facing recommendation| FinalOutput

@@ -1,240 +1,91 @@
 # 🎵 Music Recommender Simulation
 
-
 ## Project Summary
 
-In this project you will build and explain a small music recommender system.
+This repository upgrades the original AI110 Module 3 music recommender into a modular agentic workflow. The new system transforms user intent into structured search parameters, retrieves candidate songs using the existing recommendation engine, and evaluates the final playlist with a critic that assigns explicit confidence scores.
 
-Your goal is to:
+## Architecture Overview
 
-- Represent songs and a user "taste profile" as data
-- Design a scoring rule that turns that data into recommendations
-- Evaluate what your system gets right and wrong
-- Reflect on how this mirrors real world AI recommenders
+The new agentic pipeline is implemented in `src/agentic_engine.py` and follows a clean reasoning loop:
 
-Replace this paragraph with your own summary of what your version does.
+- **Planner Agent**: analyzes natural language intent and determines search parameters for energy, valence, tempo, mood, and genre.
+- **Retrieval Tool**: fetches a candidate pool using the current recommendation logic in `src/recommender.py` and enriches it with tempo/valence alignment.
+- **Critic Agent**: reviews candidates against the articulated intent, rejects misaligned songs, and computes a normalized confidence score.
+- **Human-in-the-loop output**: the system generates recommendations and makes them easy for a human to inspect and approve.
 
----
+A Mermaid diagram illustrating this flow is available at `assets/agentic_workflow.mmd`.
 
-## How The System Works
+## Setup Instructions
 
-Explain your design in plain language.
+1. Create and activate a virtual environment (recommended):
 
-How The System Works
-Real-world recommenders like Spotify and YouTube balance two goals — keeping users engaged with familiar content and introducing new discoveries. My version takes a content-based, vibe-first approach: instead of tracking what other users listen to, it scores every song by how closely it matches the listener's own taste profile.
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
 
-Song Features
-Each Song is evaluated on five attributes:
-
-Energy — perceived intensity (calm vs. driving)
-Valence — emotional positivity (sad vs. uplifting)
-Danceability — rhythmic groove and movement suitability
-Tempo (BPM) — pace of the track, normalized to a 0–1 scale
-Mood — categorical label (e.g. chill, happy, intense, focused)
-User Profile
-The UserProfile stores the listener's preferred values for each feature:
-
-Target energy, valence, danceability, and tempo (0–1 floats)
-Preferred mood (e.g. "chill")
-Preferred genre (e.g. "lofi") — used as a weighted anchor
-Algorithm Recipe
-The Recommender computes a composite score for each song using three rules:
-
-+2.0 — genre exactly matches the user's preferred genre
-+1.0 — mood exactly matches the user's preferred mood
-+0.0 to 1.0 — energy proximity score using 1 - |song_energy - target_energy|
-Energy and valence carry the most weight because they best capture emotional fit. All numerical features are normalized to a 0–1 scale so tempo (measured in BPM) doesn't outweigh smaller-range values.
-
-Choosing Recommendations
-Selection happens in two stages:
-
-Score — every song in the catalog is scored against the user profile
-Rank — the top results are filtered with a diversity penalty, limiting no more than two songs from the same genre in the final list
-This mirrors how platforms like Spotify structure Discover Weekly — accuracy on individual song fit, variety across the full list.
-
-Potential Biases
-This system might over-prioritize genre — since a genre match adds +2.0 points, a mediocre genre-matched song can outscore a song that perfectly fits the user's mood and energy but comes from a different genre. This creates a "filter bubble" where recommendations stay within one genre even when better vibes exist elsewhere. The diversity filter helps reduce this, but the genre weighting remains the biggest source of bias in the current design.
-
----
-
-## Getting Started
-
-### Setup
-
-1. Create a virtual environment (optional but recommended):
-
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate      # Mac or Linux
-   .venv\Scripts\activate         # Windows
-
-2. Install dependencies
+2. Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Run the app:
+3. Run the original CLI example:
 
 ```bash
-python -m src.main
+python3 -m src.main
 ```
 
-### Running Tests
-
-Run the starter tests with:
+4. Run the evaluation harness:
 
 ```bash
-pytest
+python3 tests/eval_harness.py
 ```
 
-You can add more tests in `tests/test_recommender.py`.
+## Sample Interaction Traces
 
+### Trace 1: Stressed and needing focus
 
----
+**User input:** "I'm stressed and need to focus on my work"
+- Planner infers low energy, moderate valence, and focused mood.
+- Retrieval selects candidates that match calm focus and tempo preferences.
+- Critic rejects songs that are too high energy.
+- Output: a shortlist of mellow, focused tracks with confidence scores.
 
-## Experiments You Tried
+### Trace 2: Gym workout playlist
 
-Use this section to document the experiments you ran. For example:
+**User input:** "I want an upbeat high-energy playlist for the gym"
+- Planner infers intense mood, high energy, and strong tempo.
+- Retrieval prioritizes energetic songs and evaluates tempo alignment.
+- Critic approves high-energy matches and assigns confidence values.
+- Output: workout-ready recommendations above the pass threshold.
 
-- What happened when you changed the weight on genre from 2.0 to 0.5
-- What happened when you added tempo or valence to the score
-- How did your system behave for different types of users
+### Trace 3: Evening wind-down
 
----
+**User input:** "Something calm and chill for winding down after a long day"
+- Planner selects relaxed mood, low energy, low tempo, and moderate valence.
+- Retrieval surfaces chill candidates from the catalog.
+- Critic filters out songs that are too intense.
+- Output: calming recommendations with transparent reasoning.
 
-## Limitations and Risks
+## Testing Summary
 
-Summarize some limitations of your recommender.
+The evaluation harness in `tests/eval_harness.py` runs five predefined user scenarios and prints a pass/fail report:
 
-Examples:
+- Pass if the top recommendation confidence is >= 0.7
+- Fail otherwise
+- The script also prints the average top confidence across scenarios
 
-- It only works on a tiny catalog
-- It does not understand lyrics or language
-- It might over favor one genre or mood
+This harness demonstrates the reliability feature and helps validate the agentic workflow end-to-end.
 
-You will go deeper on this in your model card.
+## Project Files
 
----
+- `src/recommender.py` — existing song scoring and CSV loader
+- `src/agentic_engine.py` — new planner/retriever/critic agent pipeline
+- `tests/eval_harness.py` — confidence-based evaluation harness
+- `assets/agentic_workflow.mmd` — Mermaid data-flow diagram
+- `model_card.md` — bias, risk, and AI collaboration reflection
 
-CLI VERIFICATION: screenshot attached in repo (was not attaching to README.md)
+## Notes
 
-## Reflection
-
-Read and complete `model_card.md`:
-
-[**Model Card**](model_card.md)
-
-Write 1 to 2 paragraphs here about what you learned:
-
-- about how recommenders turn data into predictions
-- about where bias or unfairness could show up in systems like this
-
-
----
-
-## 7. `model_card_template.md`
-
-Combines reflection and model card framing from the Module 3 guidance. :contentReference[oaicite:2]{index=2}  
-
-```markdown
-# 🎧 Model Card - Music Recommender Simulation
-
-## 1. Model Name
-
-Give your recommender a name, for example:
-
-> VibeFinder 1.0
-
----
-
-## 2. Intended Use
-
-- What is this system trying to do
-- Who is it for
-
-Example:
-
-> This model suggests 3 to 5 songs from a small catalog based on a user's preferred genre, mood, and energy level. It is for classroom exploration only, not for real users.
-
----
-
-## 3. How It Works (Short Explanation)
-
-Describe your scoring logic in plain language.
-
-- What features of each song does it consider
-- What information about the user does it use
-- How does it turn those into a number
-
-Try to avoid code in this section, treat it like an explanation to a non programmer.
-
----
-
-## 4. Data
-
-Describe your dataset.
-
-- How many songs are in `data/songs.csv`
-- Did you add or remove any songs
-- What kinds of genres or moods are represented
-- Whose taste does this data mostly reflect
-
----
-
-## 5. Strengths
-
-Where does your recommender work well
-
-You can think about:
-- Situations where the top results "felt right"
-- Particular user profiles it served well
-- Simplicity or transparency benefits
-
----
-
-## 6. Limitations and Bias
-
-Where does your recommender struggle
-
-Some prompts:
-- Does it ignore some genres or moods
-- Does it treat all users as if they have the same taste shape
-- Is it biased toward high energy or one genre by default
-- How could this be unfair if used in a real product
-
----
-
-## 7. Evaluation
-
-How did you check your system
-
-Examples:
-- You tried multiple user profiles and wrote down whether the results matched your expectations
-- You compared your simulation to what a real app like Spotify or YouTube tends to recommend
-- You wrote tests for your scoring logic
-
-You do not need a numeric metric, but if you used one, explain what it measures.
-
----
-
-## 8. Future Work
-
-If you had more time, how would you improve this recommender
-
-Examples:
-
-- Add support for multiple users and "group vibe" recommendations
-- Balance diversity of songs instead of always picking the closest match
-- Use more features, like tempo ranges or lyric themes
-
----
-
-## 9. Personal Reflection
-
-A few sentences about what you learned:
-
-- What surprised you about how your system behaved
-- How did building this change how you think about real music recommenders
-- Where do you think human judgment still matters, even if the model seems "smart"
-
+The design is intentionally modular and explainable. Each agent component is responsible for a single stage of the reasoning loop, making the code easier to discuss in interviews.
